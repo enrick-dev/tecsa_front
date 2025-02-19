@@ -1,0 +1,13 @@
+{
+  "name": "tecsa_front",
+  "version": "0.0.1",
+  "description": "Simulador de Loja online e Delivery",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "axios": "^1.4.0",
+    "express": "^4.18.2"
+  }
+}
