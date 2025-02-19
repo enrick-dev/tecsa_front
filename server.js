@@ -11,30 +11,56 @@ const __dirname = path.dirname(__filename);
 
 export default class Service {
   async findProducts(req, res) {
+    const cep = req.query.cep || '';
+    const keyword = req.query.keyword || '';
+
     const productsResponse = await axios.get(process.env.PRODUCTS_API_URL, {
+      ...(keyword && { params: { keyword } }),
       headers: {
         Authorization: process.env.PRODUCTS_API_KEY,
       },
     });
 
+    const stateByUser = await (async () => {
+      try {
+        if (!cep) throw new Error();
+        const cepResponse = await axios.get(
+          `${process.env.CEP_API_URL}/${cep}/json/`,
+        );
+        return cepResponse.data.uf;
+      } catch (error) {
+        return null;
+      }
+    })();
+
     const products = await Promise.all(
       productsResponse.data.items.map(async (product) => {
         if (product.cep) {
-          const cep = product.cep.replace(/\D/g, '');
+          const productCep = product.cep.replace(/\D/g, '');
           try {
             const cepResponse = await axios.get(
-              `${process.env.CEP_API_URL}/${cep}/json/`,
+              `${process.env.CEP_API_URL}/${productCep}/json/`,
             );
-            product.state = cepResponse.data.uf;
+            return {
+              ...product,
+              state: cepResponse.data.uf,
+            };
           } catch (error) {
-            product.state = null;
+            return {
+              ...product,
+              state: null,
+            };
           }
         }
         return product;
       }),
     );
 
-    return res.json(products);
+    const filteredProducts = products.filter(
+      ({ state }) => state == stateByUser,
+    );
+
+    return res.json(cep ? filteredProducts : products);
   }
 }
 
