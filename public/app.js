@@ -24,11 +24,12 @@ function renderProducts(products) {
   });
 }
 
-async function fetchProducts(keyword = '') {
+async function fetchProducts(keyword = '', cep = '') {
   try {
     let url = BASE_URL;
     const params = new URLSearchParams();
     if (keyword) params.append('keyword', keyword);
+    if (cep) params.append('cep', cep);
     if (params.toString()) url += `?${params.toString()}`;
 
     const response = await fetch(url);
@@ -45,7 +46,8 @@ async function fetchProducts(keyword = '') {
 document.getElementById('filterForm').addEventListener('submit', (e) => {
   e.preventDefault();
   const keyword = document.getElementById('keyword').value.trim();
-  fetchProducts(keyword);
+  const cep = document.getElementById('cep').value.trim();
+  fetchProducts(keyword, cep);
 });
 
 fetchProducts();
